@@ -1,0 +1,227 @@
+{
+  "diff_mode": true,
+  "config": {
+    "cpu_headroom": 0.2,
+    "memory_headroom": 0.2,
+    "over_factor": 1.5,
+    "min_waste_usd": 1,
+    "limit_margin": 0.1,
+    "min_cpu_cores": 0.01,
+    "min_memory_bytes": 33554432,
+    "price_per_vcpu_hour": 0.0316,
+    "price_per_gib_hour": 0.0042,
+    "daemonset_nodes": 1
+  },
+  "usage_source": "synthetic fixture, not real telemetry",
+  "cpu_percentile": 0.95,
+  "memory_percentile": 0.99,
+  "window": "7d",
+  "results": [
+    {
+      "namespace": "shop",
+      "kind": "Deployment",
+      "workload": "recommendations",
+      "container": "model",
+      "change": "added",
+      "head": {
+        "replicas": 2,
+        "cpu_request_cores": null,
+        "cpu_limit_cores": null,
+        "memory_request_bytes": null,
+        "memory_limit_bytes": null,
+        "monthly_usd": 0
+      },
+      "monthly_savings_if_rightsized_usd": 0,
+      "monthly_delta_usd": 0,
+      "findings": [
+        {
+          "rule": "missing-cpu-request",
+          "severity": "risk",
+          "resource": "cpu",
+          "message": "no CPU request: the scheduler reserves nothing and the container gets the smallest share under contention"
+        },
+        {
+          "rule": "missing-memory-request",
+          "severity": "risk",
+          "resource": "memory",
+          "message": "no memory request: the scheduler reserves nothing and the pod is among the first evicted under node memory pressure"
+        },
+        {
+          "rule": "missing-memory-limit",
+          "severity": "risk",
+          "resource": "memory",
+          "message": "no memory limit: a leak can consume the node's memory before the kubelet reacts"
+        },
+        {
+          "rule": "no-usage-data",
+          "severity": "info",
+          "resource": "",
+          "message": "new container, no usage history yet; only static checks ran"
+        }
+      ],
+      "status": "risk"
+    },
+    {
+      "namespace": "shop",
+      "kind": "Deployment",
+      "workload": "search",
+      "container": "app",
+      "change": "modified",
+      "base": {
+        "replicas": 2,
+        "cpu_request_cores": 0.4,
+        "cpu_limit_cores": null,
+        "memory_request_bytes": 536870912,
+        "memory_limit_bytes": 805306368,
+        "monthly_usd": 21.52
+      },
+      "head": {
+        "replicas": 2,
+        "cpu_request_cores": 0.1,
+        "cpu_limit_cores": null,
+        "memory_request_bytes": 536870912,
+        "memory_limit_bytes": 805306368,
+        "monthly_usd": 7.68
+      },
+      "usage": {
+        "cpu_cores": 0.35,
+        "memory_bytes": 419430400
+      },
+      "suggested_cpu_request_cores": 0.42,
+      "suggested_memory_request_bytes": 503316480,
+      "monthly_savings_if_rightsized_usd": 0.19,
+      "monthly_delta_usd": -13.84,
+      "findings": [
+        {
+          "rule": "cpu-request-below-usage",
+          "severity": "risk",
+          "resource": "cpu",
+          "message": "observed CPU 350m exceeds the 100m request; under node contention it is held to its request share and slows down"
+        }
+      ],
+      "status": "risk"
+    },
+    {
+      "namespace": "shop",
+      "kind": "StatefulSet",
+      "workload": "cart-redis",
+      "container": "redis",
+      "change": "modified",
+      "base": {
+        "replicas": 1,
+        "cpu_request_cores": 0.2,
+        "cpu_limit_cores": null,
+        "memory_request_bytes": 536870912,
+        "memory_limit_bytes": 536870912,
+        "monthly_usd": 6.15
+      },
+      "head": {
+        "replicas": 1,
+        "cpu_request_cores": 0.2,
+        "cpu_limit_cores": null,
+        "memory_request_bytes": 314572800,
+        "memory_limit_bytes": 314572800,
+        "monthly_usd": 5.51
+      },
+      "usage": {
+        "cpu_cores": 0.05,
+        "memory_bytes": 293601280
+      },
+      "suggested_cpu_request_cores": 0.06,
+      "suggested_memory_request_bytes": 352321536,
+      "monthly_savings_if_rightsized_usd": 3.23,
+      "monthly_delta_usd": -0.64,
+      "findings": [
+        {
+          "rule": "cpu-over-provisioned",
+          "severity": "waste",
+          "resource": "cpu",
+          "message": "request 200m is 3.3x the suggested 60m (observed 50m + 20% headroom), about $3.23/month above the suggestion"
+        },
+        {
+          "rule": "memory-limit-too-close",
+          "severity": "risk",
+          "resource": "memory",
+          "message": "observed memory 280Mi is 93% of the 300Mi limit; OOMKill risk on the next spike"
+        }
+      ],
+      "status": "risk"
+    },
+    {
+      "namespace": "shop",
+      "kind": "Deployment",
+      "workload": "checkout",
+      "container": "app",
+      "change": "modified",
+      "base": {
+        "replicas": 3,
+        "cpu_request_cores": 0.5,
+        "cpu_limit_cores": 1,
+        "memory_request_bytes": 536870912,
+        "memory_limit_bytes": 1073741824,
+        "monthly_usd": 39.2
+      },
+      "head": {
+        "replicas": 4,
+        "cpu_request_cores": 2,
+        "cpu_limit_cores": 4,
+        "memory_request_bytes": 2147483648,
+        "memory_limit_bytes": 4294967296,
+        "monthly_usd": 209.07
+      },
+      "usage": {
+        "cpu_cores": 0.18,
+        "memory_bytes": 314572800
+      },
+      "suggested_cpu_request_cores": 0.22,
+      "suggested_memory_request_bytes": 377487360,
+      "monthly_savings_if_rightsized_usd": 184.46,
+      "monthly_delta_usd": 169.87,
+      "findings": [
+        {
+          "rule": "cpu-over-provisioned",
+          "severity": "waste",
+          "resource": "cpu",
+          "message": "request 2 is 9.1x the suggested 220m (observed 180m + 20% headroom), about $164.24/month above the suggestion"
+        },
+        {
+          "rule": "memory-over-provisioned",
+          "severity": "waste",
+          "resource": "memory",
+          "message": "request 2Gi is 5.7x the suggested 360Mi (observed 300Mi + 20% headroom), about $20.22/month above the suggestion"
+        }
+      ],
+      "status": "waste"
+    },
+    {
+      "namespace": "shop",
+      "kind": "CronJob",
+      "workload": "nightly-report",
+      "container": "report",
+      "change": "removed",
+      "base": {
+        "replicas": 1,
+        "cpu_request_cores": 1,
+        "cpu_limit_cores": null,
+        "memory_request_bytes": 2147483648,
+        "memory_limit_bytes": 2147483648,
+        "monthly_usd": null
+      },
+      "monthly_savings_if_rightsized_usd": 0,
+      "monthly_delta_usd": 0,
+      "findings": [],
+      "status": "info"
+    }
+  ],
+  "totals": {
+    "containers": 5,
+    "risks": 3,
+    "wastes": 2,
+    "no_usage": 1,
+    "base_monthly_usd": 66.87,
+    "head_monthly_usd": 222.26,
+    "monthly_delta_usd": 155.39,
+    "monthly_savings_if_rightsized_usd": 187.88,
+    "unchanged_hidden": 2
+  }
+}

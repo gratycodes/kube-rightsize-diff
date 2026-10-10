@@ -1,0 +1,8 @@
+STATUS  WORKLOAD                         CONTAINER  CHANGE    CPU REQ  CPU USED  CPU SUGGEST  MEM REQ  MEM USED  MEM SUGGEST  MEM LIMIT  PODS  $/MONTH             FINDINGS
+RISK    shop/deployment/recommendations  model      added     -        -         -            -        -         -            -          2     $0.00 (new)         missing-cpu-request,missing-memory-request,missing-memory-limit,no-usage-data
+RISK    shop/deployment/search           app        modified  100m     350m      420m         512Mi    400Mi     480Mi        768Mi      2     $7.68 (-$13.84)     cpu-request-below-usage
+RISK    shop/statefulset/cart-redis      redis      modified  200m     50m       60m          300Mi    280Mi     336Mi        300Mi      1     $5.51 (-$0.64)      cpu-over-provisioned,memory-limit-too-close
+WASTE   shop/deployment/checkout         app        modified  2        180m      220m         2Gi      300Mi     360Mi        4Gi        3→4   $209.07 (+$169.87)  cpu-over-provisioned,memory-over-provisioned
+INFO    shop/cronjob/nightly-report      report     removed   1        -         -            2Gi      -         -            2Gi        1     n/a                 -
+
+5 changed containers: 3 at risk, 2 over-provisioned, 1 without usage data. Requested cost $66.87 → $222.26/month (+$155.39). Trimming requests above the suggestions saves about $187.88/month. 2 unchanged containers not shown.

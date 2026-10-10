@@ -1,0 +1,9 @@
+STATUS  WORKLOAD                         CONTAINER  CPU REQ  CPU USED  CPU SUGGEST  MEM REQ  MEM USED  MEM SUGGEST  MEM LIMIT  PODS    $/MONTH  FINDINGS
+RISK    shop/deployment/recommendations  model      -        -         -            -        -         -            -          2       $0.00    missing-cpu-request,missing-memory-request,missing-memory-limit,no-usage-data
+RISK    shop/deployment/search           app        100m     350m      420m         512Mi    400Mi     480Mi        768Mi      2       $7.68    cpu-request-below-usage
+RISK    shop/statefulset/cart-redis      redis      200m     50m       60m          300Mi    280Mi     336Mi        300Mi      1       $5.51    cpu-over-provisioned,memory-limit-too-close
+WASTE   monitoring/daemonset/node-agent  agent      100m     20m       25m          128Mi    60Mi      72Mi         256Mi      1/node  $2.69    cpu-over-provisioned
+WASTE   shop/deployment/catalog          app        250m     40m       50m          256Mi    120Mi     144Mi        512Mi      2       $13.07   cpu-over-provisioned
+WASTE   shop/deployment/checkout         app        2        180m      220m         2Gi      300Mi     360Mi        4Gi        4       $209.07  cpu-over-provisioned,memory-over-provisioned
+
+6 containers: 3 at risk, 4 over-provisioned, 1 without usage data. Requested cost $238.02/month. Trimming requests above the suggestions saves about $199.68/month.

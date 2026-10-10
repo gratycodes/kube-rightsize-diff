@@ -79,7 +79,7 @@ func TestShopDiff(t *testing.T) {
 	if rep.Totals.Unchanged != 2 {
 		t.Errorf("unchanged hidden = %d, want 2 (catalog, node-agent)", rep.Totals.Unchanged)
 	}
-	if rep.Totals.Risks != 3 || rep.Totals.Wastes != 1 || rep.Totals.NoUsage != 1 {
+	if rep.Totals.Risks != 3 || rep.Totals.Wastes != 2 || rep.Totals.NoUsage != 1 {
 		t.Errorf("totals = %+v", rep.Totals)
 	}
 	// Risk first, then waste, then info.

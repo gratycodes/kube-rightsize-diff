@@ -134,9 +134,20 @@ type Result struct {
 	PerNodeCost bool                `json:"per_node_cost,omitempty"`
 }
 
+func (r Result) has(sev Severity) bool {
+	for _, f := range r.Findings {
+		if f.Severity == sev {
+			return true
+		}
+	}
+	return false
+}
+
 // Totals summarises the results that are in scope.
 type Totals struct {
-	Containers int     `json:"containers"`
+	Containers int `json:"containers"`
+	// Risks and Wastes count containers with at least one finding of that
+	// severity; a container can be in both.
 	Risks      int     `json:"risks"`
 	Wastes     int     `json:"wastes"`
 	NoUsage    int     `json:"no_usage"`
@@ -190,10 +201,10 @@ func Analyze(base, head []manifest.Container, u *usage.Data, cfg Config) (Report
 		rep.Results = append(rep.Results, r)
 		t := &rep.Totals
 		t.Containers++
-		switch r.Status {
-		case Risk:
+		if r.has(Risk) {
 			t.Risks++
-		case Waste:
+		}
+		if r.has(Waste) {
 			t.Wastes++
 		}
 		if r.Usage == nil && r.Head != nil {
