@@ -1,0 +1,79 @@
+# Synthetic demo application, not a real system.
+# This "PR" bumps checkout for a sale, lowers search CPU and adds a new
+# recommendations service without resources.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout
+  namespace: shop
+spec:
+  replicas: 4
+  selector:
+    matchLabels: {app: checkout}
+  template:
+    metadata:
+      labels: {app: checkout}
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/example/checkout:1.5.0
+          resources:
+            requests: {cpu: "2", memory: 2Gi}
+            limits: {cpu: "4", memory: 4Gi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+  namespace: shop
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: catalog}
+  template:
+    metadata:
+      labels: {app: catalog}
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/example/catalog:2.0.2
+          resources:
+            requests: {cpu: 250m, memory: 256Mi}
+            limits: {memory: 512Mi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search
+  namespace: shop
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: search}
+  template:
+    metadata:
+      labels: {app: search}
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/example/search:0.9.3
+          resources:
+            requests: {cpu: 100m, memory: 512Mi}
+            limits: {memory: 768Mi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendations
+  namespace: shop
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: recommendations}
+  template:
+    metadata:
+      labels: {app: recommendations}
+    spec:
+      containers:
+        - name: model
+          image: ghcr.io/example/recommendations:0.1.0

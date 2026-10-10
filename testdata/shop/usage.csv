@@ -1,0 +1,8 @@
+# synthetic fixture, not real telemetry
+namespace,kind,workload,container,cpu,memory
+shop,Deployment,checkout,app,180m,300Mi
+shop,Deployment,catalog,app,40m,120Mi
+shop,Deployment,search,app,350m,400Mi
+shop,StatefulSet,cart-redis,redis,50m,280Mi
+shop,CronJob,nightly-report,report,700m,1200Mi
+monitoring,DaemonSet,node-agent,agent,20m,60Mi

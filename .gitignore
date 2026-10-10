@@ -1,0 +1,4 @@
+/kube-rightsize-diff
+/dist/
+coverage.out
+*.test

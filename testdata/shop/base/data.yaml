@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cart-redis
+  namespace: shop
+spec:
+  replicas: 1
+  serviceName: cart-redis
+  selector:
+    matchLabels: {app: cart-redis}
+  template:
+    metadata:
+      labels: {app: cart-redis}
+    spec:
+      containers:
+        - name: redis
+          image: redis:7.4
+          resources:
+            requests: {cpu: 200m, memory: 512Mi}
+            limits: {memory: 512Mi}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nightly-report
+  namespace: shop
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: report
+              image: ghcr.io/example/report:1.0.0
+              resources:
+                requests: {cpu: "1", memory: 2Gi}
+                limits: {memory: 2Gi}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-agent
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels: {app: node-agent}
+  template:
+    metadata:
+      labels: {app: node-agent}
+    spec:
+      containers:
+        - name: agent
+          image: ghcr.io/example/node-agent:3.2.0
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {memory: 256Mi}

@@ -1,0 +1,7 @@
+{"apiVersion": "v1", "kind": "List", "items": [
+  {"apiVersion": "batch/v1", "kind": "Job", "metadata": {"name": "backfill", "namespace": "etl"},
+   "spec": {"parallelism": 3, "template": {"spec": {"containers": [
+     {"name": "worker", "image": "example/worker:1", "resources": {"requests": {"cpu": "1", "memory": "1Gi"}}}]}}}},
+  {"apiVersion": "v1", "kind": "Pod", "metadata": {"name": "debug", "namespace": "etl"},
+   "spec": {"containers": [{"name": "shell", "image": "busybox"}]}}
+]}

@@ -1,0 +1,14 @@
+{
+  "source": "synthetic fixture, not real telemetry",
+  "cpu_percentile": 0.95,
+  "memory_percentile": 0.99,
+  "window": "7d",
+  "containers": [
+    {"namespace": "shop", "kind": "Deployment", "workload": "checkout", "container": "app", "cpu": "180m", "memory": "300Mi"},
+    {"namespace": "shop", "kind": "Deployment", "workload": "catalog", "container": "app", "cpu": "40m", "memory": "120Mi"},
+    {"namespace": "shop", "kind": "Deployment", "workload": "search", "container": "app", "cpu": "350m", "memory": "400Mi"},
+    {"namespace": "shop", "kind": "StatefulSet", "workload": "cart-redis", "container": "redis", "cpu": "50m", "memory": "280Mi"},
+    {"namespace": "shop", "kind": "CronJob", "workload": "nightly-report", "container": "report", "cpu": "700m", "memory": "1200Mi"},
+    {"namespace": "monitoring", "kind": "DaemonSet", "workload": "node-agent", "container": "agent", "cpu": "20m", "memory": "60Mi"}
+  ]
+}
