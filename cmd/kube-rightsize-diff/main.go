@@ -73,6 +73,7 @@ func run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 
 	format := fs.String("format", "table", "output format: table, json or markdown")
 	output := fs.String("output", "", "write the report to this file instead of stdout")
+	jsonOutput := fs.String("json-output", "", "also write the JSON report to this file (used by the GitHub Action)")
 	failOn := fs.String("fail-on", "none", "exit 2 when a finding of this severity exists: none, risk, waste or any")
 	maxIncrease := fs.Float64("max-cost-increase", -1, "exit 2 when requested cost rises by more than this many USD/month (diff mode; -1 disables)")
 	showVersion := fs.Bool("version", false, "print version and exit")
@@ -155,6 +156,11 @@ func run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 
 	if err := writeReport(rep, *format, *output, stdout); err != nil {
 		return fail("writing report: %v", err)
+	}
+	if *jsonOutput != "" {
+		if err := writeReport(rep, "json", *jsonOutput, nil); err != nil {
+			return fail("writing JSON report: %v", err)
+		}
 	}
 
 	if reason := thresholdReached(rep, *failOn, *maxIncrease); reason != "" {

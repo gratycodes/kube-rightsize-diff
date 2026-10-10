@@ -63,7 +63,7 @@ func TestStdinAndOutputFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	outFile := filepath.Join(t.TempDir(), "r.json")
-	code, stdout, errOut := runCLI(t, string(data), "--head", "-", "--format", "json", "--output", outFile)
+	code, stdout, errOut := runCLI(t, string(data), "--head", "-", "--format", "markdown", "--output", filepath.Join(t.TempDir(), "r.md"), "--json-output", outFile)
 	if code != exitOK {
 		t.Fatalf("exit %d: %s", code, errOut)
 	}

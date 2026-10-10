@@ -1,0 +1,115 @@
+name: kube-rightsize-diff
+description: Flag over- and under-provisioned Kubernetes CPU/memory requests changed in a pull request, with estimated monthly cost.
+author: Gratus Antin
+branding:
+  icon: cpu
+  color: blue
+
+inputs:
+  head:
+    description: Rendered manifests for the PR head (files or directories, whitespace separated).
+    required: true
+  base:
+    description: Rendered manifests for the PR base. When set, only changed containers are reported.
+    required: false
+    default: ""
+  usage-file:
+    description: Usage snapshot (.json or .csv). Use this or prometheus-url.
+    required: false
+    default: ""
+  prometheus-url:
+    description: Prometheus base URL reachable from the runner.
+    required: false
+    default: ""
+  prometheus-token:
+    description: Optional bearer token for Prometheus.
+    required: false
+    default: ""
+  window:
+    description: Prometheus lookback window.
+    required: false
+    default: 7d
+  cpu-percentile:
+    required: false
+    default: "0.95"
+    description: CPU usage percentile.
+  memory-percentile:
+    required: false
+    default: "0.99"
+    description: Memory usage percentile.
+  price-vcpu-hour:
+    description: Price per vCPU-hour. The default is an example, set your own.
+    required: false
+    default: "0.0316"
+  price-gib-hour:
+    description: Price per GiB-hour. The default is an example, set your own.
+    required: false
+    default: "0.0042"
+  fail-on:
+    description: Fail the step on findings of this severity (none, risk, waste, any).
+    required: false
+    default: none
+  max-cost-increase:
+    description: Fail when requested cost rises by more than this many USD/month (-1 disables).
+    required: false
+    default: "-1"
+  extra-args:
+    description: Extra CLI flags, whitespace separated (for example --namespace apps --daemonset-nodes 12).
+    required: false
+    default: ""
+  comment:
+    description: Post or update a single PR comment (needs pull-requests write).
+    required: false
+    default: "true"
+  github-token:
+    description: Token used to post the comment.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  risks:
+    description: Containers with at least one risk finding.
+    value: ${{ steps.run.outputs.risks }}
+  wastes:
+    description: Containers with at least one over-provisioning finding.
+    value: ${{ steps.run.outputs.wastes }}
+  monthly-delta-usd:
+    description: Change in requested monthly cost (diff mode).
+    value: ${{ steps.run.outputs.monthly-delta-usd }}
+  report-json:
+    description: Path to the JSON report.
+    value: ${{ steps.run.outputs.report-json }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@v6
+      with:
+        go-version-file: ${{ github.action_path }}/go.mod
+        cache-dependency-path: ${{ github.action_path }}/go.sum
+    - name: Build kube-rightsize-diff
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: go build -trimpath -o "$RUNNER_TEMP/kube-rightsize-diff" ./cmd/kube-rightsize-diff
+    - name: Check requests
+      id: run
+      shell: bash
+      # Inputs are passed through env, never interpolated into the script.
+      env:
+        KRD_BIN: ${{ runner.temp }}/kube-rightsize-diff
+        KRD_HEAD: ${{ inputs.head }}
+        KRD_BASE: ${{ inputs.base }}
+        KRD_USAGE: ${{ inputs.usage-file }}
+        KRD_PROM_URL: ${{ inputs.prometheus-url }}
+        PROMETHEUS_TOKEN: ${{ inputs.prometheus-token }}
+        KRD_WINDOW: ${{ inputs.window }}
+        KRD_CPU_PCT: ${{ inputs.cpu-percentile }}
+        KRD_MEM_PCT: ${{ inputs.memory-percentile }}
+        KRD_PRICE_CPU: ${{ inputs.price-vcpu-hour }}
+        KRD_PRICE_MEM: ${{ inputs.price-gib-hour }}
+        KRD_FAIL_ON: ${{ inputs.fail-on }}
+        KRD_MAX_INCREASE: ${{ inputs.max-cost-increase }}
+        KRD_EXTRA: ${{ inputs.extra-args }}
+        KRD_COMMENT: ${{ inputs.comment }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/action-run.sh"

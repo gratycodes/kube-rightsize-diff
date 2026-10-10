@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: go vet
+        run: go vet ./...
+      - name: go test -race
+        run: go test -race -coverprofile=coverage.out ./...
+      - name: coverage summary
+        run: go tool cover -func=coverage.out | tail -1
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.14.0
+
+  action:
+    name: action self-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: run the composite action on the synthetic fixtures
+        id: krd
+        uses: ./
+        with:
+          head: testdata/shop/head
+          base: testdata/shop/base
+          usage-file: testdata/shop/usage.json
+          # The fixture is meant to have findings; keep the job green and
+          # assert on the outputs instead.
+          fail-on: none
+          comment: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+      - name: check outputs
+        env:
+          RISKS: ${{ steps.krd.outputs.risks }}
+          WASTES: ${{ steps.krd.outputs.wastes }}
+          DELTA: ${{ steps.krd.outputs.monthly-delta-usd }}
+        run: |
+          echo "risks=$RISKS wastes=$WASTES delta=$DELTA"
+          test "$RISKS" = 3
+          test "$WASTES" = 2
+          test "$DELTA" = 155.39
+
+  e2e:
+    name: e2e (kind + Prometheus)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: build
+        run: go build -o kube-rightsize-diff ./cmd/kube-rightsize-diff
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: krd-e2e
+      - name: run e2e
+        env:
+          KRD_BIN: ${{ github.workspace }}/kube-rightsize-diff
+          OUT: ${{ runner.temp }}/e2e
+        run: ./e2e/run.sh
+      - name: diagnostics
+        if: failure()
+        run: |
+          kubectl get pods -A -o wide
+          kubectl -n monitoring logs deploy/prometheus --tail=100 || true
+      - name: report in job summary
+        if: always()
+        run: cat "$RUNNER_TEMP/e2e/report.md" >> "$GITHUB_STEP_SUMMARY" || true

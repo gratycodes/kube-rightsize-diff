@@ -1,0 +1,43 @@
+# Example: check a Kustomize repo on every PR. Copy to
+# .github/workflows/requests-check.yml in your infrastructure repo.
+name: requests check
+on:
+  pull_request:
+    paths: ["k8s/**"]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  rightsize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: render base and head
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/rendered"
+          kustomize build k8s/overlays/prod > "$RUNNER_TEMP/rendered/head.yaml"
+          git worktree add "$RUNNER_TEMP/base" "$BASE_SHA"
+          kustomize build "$RUNNER_TEMP/base/k8s/overlays/prod" > "$RUNNER_TEMP/rendered/base.yaml"
+          # Helm instead:
+          # helm template web charts/web -f values-prod.yaml > "$RUNNER_TEMP/rendered/head.yaml"
+      - uses: gratycodes/kube-rightsize-diff@main
+        with:
+          head: ${{ runner.temp }}/rendered/head.yaml
+          base: ${{ runner.temp }}/rendered/base.yaml
+          # Either a Prometheus the runner can reach (self-hosted runner,
+          # VPN, or an authenticated gateway)...
+          prometheus-url: ${{ vars.PROMETHEUS_URL }}
+          prometheus-token: ${{ secrets.PROMETHEUS_TOKEN }}
+          window: 14d
+          # ...or a snapshot exported on a schedule:
+          # usage-file: usage/prod.json
+          price-vcpu-hour: "0.0316"   # example only, use your blended rate
+          price-gib-hour: "0.0042"    # example only
+          fail-on: risk
+          max-cost-increase: "500"
