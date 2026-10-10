@@ -207,7 +207,7 @@ func TestConfigValidate(t *testing.T) {
 }
 
 func TestFormat(t *testing.T) {
-	cpu := map[float64]string{0.5: "500m", 2: "2", 0.0123: "12m", 1.25: "1250m"}
+	cpu := map[float64]string{0.5: "500m", 2: "2", 0.0123: "12m", 1.25: "1250m", 0.0002: "<1m", 0: "0"}
 	for in, want := range cpu {
 		if got := FormatCPU(in); got != want {
 			t.Errorf("FormatCPU(%v) = %s, want %s", in, got, want)

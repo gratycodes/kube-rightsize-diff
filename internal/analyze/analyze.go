@@ -399,6 +399,9 @@ func round2(v float64) float64 {
 
 // FormatCPU renders cores the way manifests usually do (500m, 2).
 func FormatCPU(cores float64) string {
+	if cores > 0 && cores < 0.0005 {
+		return "<1m" // idle but not zero; "0" reads like missing data
+	}
 	m := int64(math.Round(cores * 1000))
 	if m%1000 == 0 {
 		return fmt.Sprintf("%d", m/1000)
