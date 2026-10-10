@@ -1,0 +1,32 @@
+version: "2"
+linters:
+  enable:
+    - errorlint
+    - gocritic
+    - misspell
+    - revive
+    - unconvert
+    - unparam
+  settings:
+    errcheck:
+      # Report writers surface errors through the final Flush/WriteString;
+      # read-only file and response bodies have nothing useful to report
+      # on Close. The output file is closed and checked explicitly.
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (*os.File).Close
+        - (io.ReadCloser).Close
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/gratycodes/kube-rightsize-diff
